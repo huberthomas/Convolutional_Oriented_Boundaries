@@ -4,9 +4,10 @@ clear all;close all;home;
 
 % Read an input image
 I = imread(fullfile(cob_root,'demos','101087.jpg'));
+resize_I = imresize(I, 0.8)
 
 % Compute the proposals
-[proposals_cob, ucm2_cob, times] = im2prop(I);
+[proposals_cob, ucm2_cob, times] = im2prop(resize_I);
 
 % Display timing
 fprintf('Timing: \n + Boundaries %0.3f s\n + UCMs       %0.3f s\n + Proposals  %0.3f s\n', times.boundaries, times.ucms, times.proposals)

@@ -16,17 +16,22 @@ function ucms_sp = project_ucms_wrap_fast(ucms,thr,mode)
 % Mode: 1 - Sampling at all thresholds
 %       2 - Sampling at 100 thresholds (as original method)
 
-if nargin<3,
+if nargin < 3
     mode = 2;
 end
+
 
 ucms_sp = zeros([size(ucms{1},1),size(ucms{1},2),numel(ucms)]);
 labels2 = zeros([(size(ucms{1},1)-1)/2,(size(ucms{1},2)-1)/2,numel(ucms)]);
 n_sp    = zeros(1,numel(ucms));
 
 for d = 1:numel(ucms)
+%     disp(ucms{d} <= thr)
     [tmp, n_sp(d)] = bwlabel(ucms{d} <= thr);
+%     imshow(tmp)
+%     vislabels(tmp)
     labels2(:,:,d) = tmp(2:2:end,2:2:end);
+
 end
 
 for d = 1:numel(ucms)
@@ -37,5 +42,7 @@ for d = 1:numel(ucms)
         ucm_sp = mex_ucm_align(ucm_sp, uint32(labels3), n_spb, uint32(labels2(:,:,u-1)), n_sp(u-1), mode);
     end
     ucms_sp(:,:,d) = ucm_sp;
+    
+% imshow(sum(ucms_sp, 3))
 end
 

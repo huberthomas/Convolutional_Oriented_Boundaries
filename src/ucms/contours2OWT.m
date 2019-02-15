@@ -21,8 +21,10 @@ function [owt2, superpixels] = contours2OWT(pb_cont,pb_ori)
 
 pb_cont(pb_cont<0)=0; % requires positive signal.
 
+% imshow(pb_cont)
 % create finest partition and transfer contour strength
 ws_wt = create_finest_partition(pb_cont, pb_ori);
+% imshow(ws_wt)
 
 % convert to ucm2 format
 owt2 = double(super_contour_4c(ws_wt));
@@ -33,12 +35,15 @@ owt2(:, end+1) = owt2(:, end);
 % pre-compute finest superpixels
  labels2 = bwlabel(owt2 == 0, 8);
  superpixels = labels2(2:2:end, 2:2:end) - 1; % labels begin at 0 in mex file.
+%  imshow(superpixels)
+
 
  %%
 function ws_wt = create_finest_partition(pb_cont,pb_ori)
 
 ws = watershed(pb_cont);
 ws_bw = (ws == 0);
+% imshow(ws)
 
 contours = fit_contour(double(ws_bw));
 angles = zeros(numel(contours.edge_x_coords), 1);
@@ -66,6 +71,7 @@ for e = 1 : numel(contours.edge_x_coords)
         end
     end
 end
+
 
 [tx, ty] = size(ws_wt);
 % assign junctions to strongest neighbor
@@ -99,6 +105,7 @@ for e = 1 : numel(contours.edge_x_coords)
     if (v2(2)>1) && (ws_wt(v2(1), v2(2)-1) > ws_wt(v2(1), v2(2))),
         ws_wt(v2(1), v2(2)) = ws_wt(v2(1), v2(2)-1);
     end
+    
 end
 
 %%
@@ -184,12 +191,13 @@ end
 % extract contours and neighboring regions given non-max suppressed edge map
 function contours = fit_contour(nmax)
 
+
 % extract contours
-[skel, labels, is_v, is_e, assign, vertices, edges, ...
-    v_left, v_right, e_left, e_right, c_left, c_right, ...
-    edge_equiv_ids, is_compl, e_x_coords, e_y_coords] = ...
+[skel, labels, is_v, is_e, assign, vertices, edges,v_left, v_right, e_left, e_right, c_left, c_right,edge_equiv_ids, is_compl, e_x_coords, e_y_coords] = ...
     mex_contour_sides(nmax,true);
 
+% imshow(mex_contour_sides(nmax,true))
+% [s, l, v, e, a, ver] = mex_contour_sides(nmax,true)
 
 % store pixel assignment maps
 contours.skel   = skel;

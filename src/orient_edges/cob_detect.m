@@ -57,7 +57,9 @@ end
 temp = zeros([size(res{1}') 8]);
 for i=1:8
     temp(:,:,i) = permute(res{i},[2 1]); %watch net.outputs to associate names to the correct output.
+ 
 end
+
 
 % Multiscale Contours (Keep the order!!)
 E{1} = permute(res{10},[2 1]); % fine scale
@@ -65,6 +67,7 @@ E{2} = permute(res{9},[2 1]);  % coarse scale
 
 % Decode the orientation
 O.angle = trainedOrientation(temp);
+% imshow(O.angle)
 O.conf = temp;
 
 end

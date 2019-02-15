@@ -14,9 +14,11 @@
 % ------------------------------------------------------------------------
 function [ucm2, ucms, times, O, E] = img2ucms(I, cob_parameters)
 
+
 if size(I,3)==1 % Grayscale image
     I = cat(3,I,I,I);
 end
+
 
 if size(I,1)<15 || size(I,2)<15 % Tiny image
     % Simply return an empty UCM with the appropriate sizes
@@ -32,18 +34,26 @@ param = cob_parameters.other_param;
 [param.tx, param.ty, ~] = size(I);
 
 % Compute ucms at multiple scales
+% And Create ucm using img2ucm_scal_fast method. 
 [ucms_pre, tm, O, E] = img2ucm_scale_fast(cob_parameters.net, I, param);
 tmp_times.im2ucm = tm;
+% imshow(im2ucm)
+
+
 
 % Align ucms
 T=tic;
+% imshow(ucms_pre{2})
 ucms = project_ucms_wrap_fast(ucms_pre, cob_parameters.align_thr);
+% imshow(sum(ucms_pre,3));
+% imshow(sum(ucms,3));
 tmp_times.project_ucms_wrap=toc(T);
 
 % Combine ucms
 param = cob_parameters.param_multi;
 param.weights = ones(1,size(ucms,3));
 T=tic;
+
 ucm2 = ucms2multi(ucms, param);
 tmp_times.ucms2multi=toc(T);
 
@@ -57,7 +67,8 @@ function [ucm2, times, O, E] = img2ucm_scale_fast(net, I, param)
 % Detect multiscale contours with a single fw pass
 rng(param.rng);
 T=tic;
-[E,O] = cob_detect(net, I);
+[E,O] = cob_detect(net, I); % detect white line which is countors
+% imshow(E{1})
 times.edge_detect=toc(T);
 
 T=tic;
@@ -66,6 +77,7 @@ ucm2 = cell(n_scales,1);
 for s=1:n_scales
     % Continuous oriented watershed transform
     [owt2, superpixels] = contours2OWT(E{s}, O.angle);
+%     imshow(owt2)
     
     % Globalization
     if param.glob
@@ -75,9 +87,14 @@ for s=1:n_scales
     % Ultrametric contour map with mean pb.
     if (~param.glob)
         ucm2{s} = double(ucm_mean_pb( (owt2), superpixels) );
+%         imshow(ucm_mean_pb( (owt2), superpixels))
     else
         ucm2{s} = double(ucm_mean_pb( (owt2 + sPb_thin), superpixels) );
     end
+    
+    
+
+imshow(ucm2{1})
 end
 times.ucm=toc(T);
 
@@ -89,6 +106,8 @@ weights = param.weights;
 weights = weights ./ sum(weights);
 
 sz = size(all_ucms);
+
+
 W_all = repmat(repmat(weights', [1,sz(2)]),[1,1,sz(1)]); W_all = permute(W_all, [3 2 1]);
 all_ucms = all_ucms.*W_all;
 
